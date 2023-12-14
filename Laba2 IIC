@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Завантаження даних
+data = pd.read_csv('la-crime.csv')
+
+# Групування та підрахунок кількості злочинів за кожним типом
+top_crimes = data['Crime_Type'].value_counts().head(10)
+
+# Побудова графіка
+top_crimes.plot(kind='bar')
+plt.xlabel('Типи злочинів')
+plt.ylabel('Кількість')
+plt.title('10 найпоширеніших злочинів в LA')
+plt.show()
+# Групування та підрахунок кількості злочинів за кожною статтю
+gender_crimes = data.groupby(['Victim_Sex', 'Crime_Type']).size()
+
+# Розділення на жінок та чоловіків
+female_victims = gender_crimes['F']
+male_victims = gender_crimes['M']
+
+# Знайдення злочину, який частіше потерпають жінки та чоловіки
+most_common_female_crime = female_victims.idxmax()
+most_common_male_crime = male_victims.idxmax()
+
+print(f"Злочин, від якого частіше потерпають жінки: {most_common_female_crime}")
+print(f"Злочин, від якого частіше потерпають чоловіки: {most_common_male_crime}")
+# Групування та підрахунок кількості злочинів за кожним походженням
+ethnicity_victims = data['Victim_Ethnicity'].value_counts().idxmax()
+
+print(f"Люди походження {ethnicity_victims} найчастіше піддаються злочинам.")
+# Групування та підрахунок кількості злочинів за кожним районом
+crime_by_area = data['Area_Name'].value_counts()
+
+# Побудова графіка
+crime_by_area.plot(kind='bar')
+plt.xlabel('Район')
+plt.ylabel('Кількість злочинів')
+plt.title('Кількість злочинів за районами')
+plt.show()
+# Групування та підрахунок кількості злочинів за кожним походженням та районом
+ethnicity_by_area = data.groupby(['Area_Name', 'Victim_Ethnicity']).size().unstack()
+
+# Знайдення походження, яке найчастіше страждає в кожному з районів
+most_common_ethnicity_by_area = ethnicity_by_area.idxmax()
+
+print(most_common_ethnicity_by_area)
