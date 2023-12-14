@@ -1,0 +1,26 @@
+import ray
+from ray import tune
+
+ray.init()
+
+# Визначення гіперпараметрів для оптимізації
+config_space = {
+    "learning_rate": tune.uniform(0.001, 0.1),
+    "discount_factor": tune.uniform(0.8, 0.99),
+    "exploration_param": tune.uniform(0.01, 0.1),
+}
+
+def train_function(config):
+    # Припустимо, що train_function повертає середню винагороду за епізод
+    return -reward  # Мінімізуємо втрату
+
+analysis = tune.run(
+    train_function,
+    config=config_space,
+    num_samples=10,  # Кількість експериментів
+)
+
+print("Максимальна середня винагорода:", -analysis.best_result['metric'])  # Перетворення назад через знак мінус
+print("Оптимальні гіперпараметри:", analysis.best_config)
+
+ray.shutdown()
