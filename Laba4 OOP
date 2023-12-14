@@ -1,0 +1,211 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+
+public interface INameAndCopy
+{
+    string Name { get; set; }
+    object DeepCopy();
+}
+
+public class Fares : IEnumerable<Auto>
+{
+    private List<Auto> cars = new List<Auto>();
+
+    public void AddAuto(string owner, string date, int number, Parking park)
+    {
+        cars.Add(new Auto(number, owner, DateTime.Parse(date)));
+    }
+
+    public IEnumerator<Auto> GetEnumerator()
+    {
+        return cars.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    {
+        return cars.GetEnumerator();
+    }
+
+    public object DeepCopy()
+    {
+        Fares copy = new Fares();
+        foreach (Auto car in cars)
+        {
+            copy.cars.Add((Auto)car.DeepCopy());
+        }
+        return copy;
+    }
+}
+
+public enum Parking
+{
+    Cars,
+    FreightCars,
+    Buses
+}
+
+public class Person : INameAndCopy
+{
+    public string[] Cars { get; set; }
+
+    public Person(string[] cars)
+    {
+        Cars = cars;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+
+        Person other = (Person)obj;
+        return Enumerable.SequenceEqual(Cars, other.Cars);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (string car in Cars)
+                hash = hash * 23 + car.GetHashCode();
+            return hash;
+        }
+    }
+
+    public object DeepCopy()
+    {
+        return new Person(Cars.ToArray());
+    }
+
+    string INameAndCopy.Name { get; set; }
+}
+
+
+public class Price : INameAndCopy
+{
+    protected string services;
+    protected int occupiedSpace;
+
+    public Price(string services, int occupiedSpace)
+    {
+        this.services = services;
+        OccupiedSpace = occupiedSpace;
+    }
+
+    public Price()
+    {
+        services = "";
+        OccupiedSpace = 0;
+    }
+
+    public string Services
+    {
+        get => services;
+        set
+        {
+            if (value.Length == 0)
+                throw new ArgumentException("Послуги не можуть бути порожніми.");
+            services = value;
+        }
+    }
+
+    public int OccupiedSpace
+    {
+        get => occupiedSpace;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException("Зайняті місця повинні бути більше нуля.");
+            occupiedSpace = value;
+        }
+    }
+
+    public virtual object DeepCopy()
+    {
+        return new Price(services, occupiedSpace);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+
+        Price other = (Price)obj;
+        return services == other.services && occupiedSpace == other.occupiedSpace;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(services, occupiedSpace);
+    }
+
+    public override string ToString()
+    {
+        return $"Послуги: {services}, Зайняті місця: {occupiedSpace}";
+    }
+
+    string INameAndCopy.Name { get; set; }
+}
+
+
+public class Auto : INameAndCopy
+{
+    public int RegNumber { get; set; }
+    public string Owner { get; set; }
+    public DateTime Date { get; set; }
+
+    public Auto(int regNumber, string owner, DateTime date)
+    {
+        RegNumber = regNumber;
+        Owner = owner;
+        Date = date;
+    }
+
+    public Auto()
+    {
+        RegNumber = 0;
+        Owner = "Default Owner";
+        Date = DateTime.Now;
+    }
+
+    public override string ToString()
+    {
+        return $"Державний номер: {RegNumber}, Власник: {Owner}, Дата: {Date}";
+    }
+
+    public object DeepCopy()
+    {
+        return new Auto(RegNumber, Owner, Date);
+    }
+
+    string INameAndCopy.Name { get; set; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.OutputEncoding = Encoding.UTF8;
+        Fares fares = new Fares();
+
+        fares.AddAuto("Діо Брандо", DateTime.Today.Date.AddHours(10).AddMinutes(3).AddSeconds(31).ToString(), 12345, Parking.Cars);
+        fares.AddAuto("Джонні Джостар", DateTime.Today.Date.AddHours(8).AddMinutes(32).AddSeconds(12).ToString(), 54321, Parking.FreightCars);
+        fares.AddAuto("Джайро Цепелі", DateTime.Today.Date.AddHours(5).AddMinutes(53).AddSeconds(41).ToString(), 67890, Parking.Buses);
+
+        foreach (Auto car in fares)
+        {
+            Console.WriteLine(car);
+        }
+
+        Fares copyFares = (Fares)fares.DeepCopy();
+
+        Console.WriteLine("\nКопія списку автомобілів:");
+        foreach (Auto car in copyFares)
+        {
+            Console.WriteLine(car);
+        }
+    }
+}
