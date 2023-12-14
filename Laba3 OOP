@@ -1,0 +1,184 @@
+using System;
+
+public enum University
+{
+    Subdivisions,
+    Centers,
+    Faculty
+}
+
+public class Person
+{
+    public string Name { get; set; }
+    public string Surname { get; set; }
+    public DateTime BirthDate { get; set; }
+
+    public Person(string name, string surname, DateTime birthDate)
+    {
+        Name = name;
+        Surname = surname;
+        BirthDate = birthDate;
+    }
+
+    public Person()
+    {
+        Name = "John";
+        Surname = "Doe";
+        BirthDate = DateTime.Now;
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} {Surname}, born on {BirthDate.ToShortDateString()}";
+    }
+
+    public virtual string ToShortString()
+    {
+        return $"{Name} {Surname}";
+    }
+}
+
+public class Chair
+{
+    public string ChairName { get; set; }
+    public string TrainingDirection { get; set; }
+    public DateTime CreationDate { get; set; }
+
+    public Chair(string chairName, string trainingDirection, DateTime creationDate)
+    {
+        ChairName = chairName;
+        TrainingDirection = trainingDirection;
+        CreationDate = creationDate;
+    }
+
+    public Chair()
+    {
+        ChairName = "DefaultChair";
+        TrainingDirection = "DefaultDirection";
+        CreationDate = DateTime.Now;
+    }
+
+    public override string ToString()
+    {
+        return $"{ChairName} ({TrainingDirection}), created on {CreationDate.ToShortDateString()}";
+    }
+}
+
+public class Employees
+{
+    private Person employeeData;
+    private University workplace;
+    private int age;
+    private Chair[] chairs;
+
+    public Employees(Person employeeData, University workplace, int age, params Chair[] chairs)
+    {
+        this.employeeData = employeeData;
+        this.workplace = workplace;
+        this.age = age;
+        this.chairs = chairs;
+    }
+
+    public Employees()
+    {
+        employeeData = new Person();
+        workplace = University.Faculty;
+        age = 30; // default age
+        chairs = new Chair[0];
+    }
+
+    public Person EmployeeData
+    {
+        get { return employeeData; }
+        set { employeeData = value; }
+    }
+
+    public University Workplace
+    {
+        get { return workplace; }
+        set { workplace = value; }
+    }
+
+    public int Age
+    {
+        get { return age; }
+        set { age = value; }
+    }
+
+    public Chair[] Chairs
+    {
+        get { return chairs; }
+        set { chairs = value; }
+    }
+
+    public double AverageAge
+    {
+        get
+        {
+            if (chairs.Length == 0) return 0;
+
+            double totalAge = 0;
+            foreach (Chair chair in chairs)
+            {
+                totalAge += DateTime.Now.Year - chair.CreationDate.Year;
+            }
+
+            return totalAge / chairs.Length;
+        }
+    }
+
+    public bool this[University index]
+    {
+        get { return workplace == index; }
+    }
+
+    public void AddChairs(params Chair[] newChairs)
+    {
+        Array.Resize(ref chairs, chairs.Length + newChairs.Length);
+        Array.Copy(newChairs, 0, chairs, chairs.Length - newChairs.Length, newChairs.Length);
+    }
+
+    public override string ToString()
+    {
+        return $"{employeeData}, Age: {age}, Workplace: {workplace}";
+    }
+
+    public virtual string ToShortString()
+    {
+        return $"{employeeData.ToShortString()}, Age: {age}";
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Employees employee = new Employees(new Person("Alice", "Smith", new DateTime(1990, 5, 15)), University.Subdivisions, 28);
+
+        Console.WriteLine("Data using ToShortString():");
+        Console.WriteLine(employee.ToShortString());
+
+        Console.WriteLine("\nIndex values:");
+        Console.WriteLine($"Is in Subdivisions: {employee[University.Subdivisions]}");
+        Console.WriteLine($"Is in Centers: {employee[University.Centers]}");
+        Console.WriteLine($"Is in Faculty: {employee[University.Faculty]}");
+
+        employee.EmployeeData = new Person("Bob", "Johnson", new DateTime(1985, 3, 20));
+        employee.Workplace = University.Faculty;
+        employee.Age = 35;
+        employee.AddChairs(new Chair("Computer Science", "Programming", new DateTime(2010, 9, 1)));
+
+        Console.WriteLine("\nData using ToString() after assignment:");
+        Console.WriteLine(employee.ToString());
+
+        employee.AddChairs(
+            new Chair("Mathematics", "Calculus", new DateTime(2005, 5, 10)),
+            new Chair("Physics", "Quantum Mechanics", new DateTime(2008, 8, 25))
+        );
+
+        Console.WriteLine("\nData after adding chairs:");
+        Console.WriteLine(employee.ToString());
+
+        Console.ReadLine();
+    }
+}
